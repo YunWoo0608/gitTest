@@ -17,6 +17,50 @@ void check_line(void); //줄이 가득찼는지를 판단하고 지움
 void check_level_up(void); //레벨목표가 달성되었는지를 판단하고 levelup시킴 
 void check_game_over(void); //게임오버인지 판단하고 게임오버를 진행 
 void pause(void);//게임을 일시정지시킴 
+void setcursortype(CURSOR_TYPE c);
+void gotoxy(int x, int y);
+
+CONSOLE_CURSOR_INFO setCurInfo(int size, BOOL flag); // 커서 정보를 받아서 저장하고 커서 객체를 리턴함
+void file_control(FILE * file, char * file_name, char * ch);
+void init_reset(void); //매 게임마다 초기화가 필요한 변수들을 초기화시킴
+
+void init_reset(void) {
+	level = 1; //각종변수 초기화 
+	score = 0;
+	level_goal = 1000;
+	key = 0;
+	crush_on = 0;
+	cnt = 0;
+	speed = 100;
+}
+
+void file_control(FILE * file, char * file_name, char * ch) { //file control함수로 읽기 저장하기 닫기 기능을 수행함.
+
+	if (ch == "rt") {
+		fopen_s(&file, file_name, ch);
+		if (file == 0) { best_score = 0; } //파일이 없으면 걍 최고점수에 0을 넣음 
+		else {
+			fscanf_s(file, "%d", &best_score); // 파일이 열리면 최고점수를 불러옴 
+		}
+	}
+	else if (ch == "wt") {
+		fopen_s(&file, file_name, ch); //score.dat에 점수 저장                
+		if (file == NULL) {	
+			gotoxy(0, 0); 
+			printf("존재하지 않는 파일 입니다. \n");
+		}
+		fprintf(file, "%d", score);
+
+	}
+	
+	//모든 작업후엔 항상 close를 해야하므로 
+	if (file == NULL) {
+		printf("NULL 파일을 닫으려 하고있습니다.\n");
+		return;
+	}
+	fclose(file); //파일 닫음	
+	
+}
 
 CONSOLE_CURSOR_INFO setCurInfo(int size, BOOL flag); // 커서 정보를 받아서 저장하고 커서 객체를 리턴함
 void file_control(FILE * file, char * file_name, char * ch);
@@ -76,16 +120,13 @@ void setcursortype(CURSOR_TYPE c) { //커서숨기는 함수
 
 	switch (c) {
 	case NOCURSOR:
-		CurInfo.dwSize = 1;
-		CurInfo.bVisible = FALSE;
+		CurInfo = setCurInfo(1, FALSE);
 		break;
 	case SOLIDCURSOR:
-		CurInfo.dwSize = 100;
-		CurInfo.bVisible = TRUE;
+		CurInfo = setCurInfo(100, TRUE);
 		break;
 	case NORMALCURSOR:
-		CurInfo.dwSize = 20;
-		CurInfo.bVisible = TRUE;
+		CurInfo = setCurInfo(20, TRUE);
 		break;
 	}
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &CurInfo);
@@ -130,21 +171,9 @@ void title(void) {
 
 void reset(void) {
 
-	FILE *file;
-	fopen_s(&file, "score.dat", "rt"); // score.dat파일을 연결 
-	if (file == 0) { best_score = 0; } //파일이 없으면 걍 최고점수에 0을 넣음 
-	else {
-		fscanf_s(file, "%d", &best_score); // 파일이 열리면 최고점수를 불러옴 
-		fclose(file); //파일 닫음 
-	}
-
-	level = 1; //각종변수 초기화 
-	score = 0;
-	level_goal = 1000;
-	key = 0;
-	crush_on = 0;
-	cnt = 0;
-	speed = 100;
+	file_control(file, "score.dat", "rb"); //file control함수로 읽기 저장하기 닫기 기능을 수행함.
+	
+	init_reset();	//매 게임마다 초기화가 필요한 변수들을 초기화시킴
 
 	system("cls"); //화면지움 
 	reset_main(); // main_org를 초기화 
@@ -348,9 +377,8 @@ void drop_block(void) {
 			}
 		}
 		crush_on = 0; //flag를 끔 
-		new_block_on = 1;
 		check_line(); //라인체크를 함 
-		 //새로운 블럭생성 flag를 켬    
+		new_block_on = 1; //새로운 블럭생성 flag를 켬    
 		return; //함수 종료 
 	}
 	if (check_crush(bx, by + 1, b_rotation) == true) move_block(DOWN); //밑이 비어있으면 밑으로 한칸 이동 
@@ -453,7 +481,7 @@ void move_block(int dir) { //블록을 이동시킴
 void check_line(void) {
 	int i, j, k, l;
 
-	int block_amount; //한줄의 블록갯수를 저장하는 변수 
+	int    block_amount; //한줄의 블록갯수를 저장하는 변수 
 	int combo = 0; //콤보갯수 저장하는 변수 지정및 초기화 
 
 	for (i = MAIN_Y - 2; i > 3;) { //i=MAIN_Y-2 : 밑쪽벽의 윗칸부터,  i>3 : 천장(3)아래까지 검사 
@@ -488,6 +516,7 @@ void check_line(void) {
 		gotoxy(STATUS_X_ADJ, STATUS_Y_GOAL); printf(" GOAL  : %5d", (cnt <= 10) ? 10 - cnt : 0);
 		gotoxy(STATUS_X_ADJ, STATUS_Y_SCORE); printf("        %6d", score);
 	}
+
 	return;
 }
 
@@ -562,7 +591,6 @@ void check_level_up(void) {
 		gotoxy(STATUS_X_ADJ, STATUS_Y_GOAL); printf(" GOAL  : %5d", 10 - cnt); // 레벨목표 표시 
 
 	}
-
 	return;
 }
 
@@ -587,19 +615,8 @@ void check_game_over(void) {
 			last_score = score; //게임점수를 옮김 
 
 			if (score > best_score) { //최고기록 갱신시 
-				FILE* file;
-				fopen_s(&file, "score.dat", "wt"); //score.dat에 점수 저장                
-
+				file_control(file, "score.dat", "wb");
 				gotoxy(x, y + 6); printf("▤  ★★★ BEST SCORE! ★★★   ▤  ");
-
-				if (file == 0) { //파일 에러메세지  
-					gotoxy(0, 0);
-					printf("FILE ERROR: SYSTEM CANNOT WRITE BEST SCORE ON \"SCORE.DAT\"");
-				}
-				else {
-					fprintf(file, "%d", score);
-					fclose(file);
-				}
 			}
 			Sleep(1000);
 			while (_kbhit()) _getch();
@@ -609,7 +626,6 @@ void check_game_over(void) {
 	}
 	return;
 }
-
 void pause(void) { //게임 일시정지 함수 
 	int i, j;
 
