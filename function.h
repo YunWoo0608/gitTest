@@ -2,7 +2,7 @@
 
 #include "init.h"
 
-void title(void); //게임시작화면 
+void title(void); //게임시작화면.
 void reset(void); //게임판 초기화 
 void reset_main(void); //메인 게임판(main_org[][]를 초기화)
 void reset_main_cpy(void); //copy 게임판(main_cpy[][]를 초기화)
