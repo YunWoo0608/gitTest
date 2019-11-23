@@ -510,7 +510,7 @@ void check_line(void) {
 				cnt++; //지운 줄 갯수 카운트 증가 
 				combo++; //콤보수 증가  
 			}
-			for (k = i; k > 1; k--) { //윗줄을 한칸씩 모두 내림(윗줄이 천장이 아닌 경우에만) 
+			for (k = i; k > 1; k--) { //윗줄이 천장이 아닐 경우, 한칸 씩 내린다.
 				for (l = 1; l < MAIN_X - 1; l++) {
 					if (main_org[k - 1][l] != CEILLING) 
 						main_org[k][l] = main_org[k - 1][l];
