@@ -186,23 +186,27 @@ void reset(void) {
 	return;
 }
 
-void reset_main(void) { //게임판을 초기화  
-	int i, j;
+void reset_main(void) { //게임 화면을 초기화한다.
+	int i;
+	int j;
 
-	for (i = 0; i < MAIN_Y; i++) { // 게임판을 0으로 초기화  
+	for (i = 0; i < MAIN_Y; i++) { // 게임 화면의 x 좌표와 y좌표까지 빈공간으로 초기화한다.
 		for (j = 0; j < MAIN_X; j++) {
 			main_org[i][j] = 0;
-			main_cpy[i][j] = 100;
+			main_cpy[i][j] = 100; //main_cpy는 main_org 와 비교하기 위해 게임에 사용되지 않는 숫자로 초기화한다.
 		}
 	}
-	for (j = 1; j < MAIN_X; j++) { //y값이 3인 위치에 천장을 만듦 
+
+	for (j = 1; j < MAIN_X; j++) { //y 좌표값이 3인 위치에 천장을 만든다.
 		main_org[3][j] = CEILLING;
 	}
-	for (i = 1; i < MAIN_Y - 1; i++) { //좌우 벽을 만듦  
+
+	for (i = 1; i < MAIN_Y - 1; i++) { //좌우 벽을 만든다.
 		main_org[i][0] = WALL;
 		main_org[i][MAIN_X - 1] = WALL;
 	}
-	for (j = 0; j < MAIN_X; j++) { //바닥벽을 만듦 
+
+	for (j = 0; j < MAIN_X; j++) { // 바닥 벽을 만든다. 
 		main_org[MAIN_Y - 1][j] = WALL;
 	}
 
@@ -210,10 +214,11 @@ void reset_main(void) { //게임판을 초기화
 }
 
 void reset_main_cpy(void) { //main_cpy를 초기화 
-	int i, j;
+	int i;
+	int j;
 
-	for (i = 0; i < MAIN_Y; i++) {         //게임판에 게임에 사용되지 않는 숫자를 넣음 
-		for (j = 0; j < MAIN_X; j++) {  //이는 main_org와 같은 숫자가 없게 하기 위함 
+	for (i = 0; i < MAIN_Y; i++) { //main_cpy는 main_org 와 비교하기 위해 게임에 사용되지 않는 숫자로 초기화한다.      
+		for (j = 0; j < MAIN_X; j++) {  
 			main_cpy[i][j] = 100;
 		}
 	}
@@ -367,22 +372,30 @@ void check_key(void) {
 }
 
 void drop_block(void) {
-	int i, j;
+	int i;
+	int j;
 
-	if (crush_on&&check_crush(bx, by + 1, b_rotation) == true) crush_on = 0; //밑이 비어있으면 crush flag 끔 
-	if (crush_on&&check_crush(bx, by + 1, b_rotation) == false) { //밑이 비어있지않고 crush flag가 켜저있으면 
+	if (crush_on && check_crush(bx, by + 1, b_rotation) == true) 
+		crush_on = 0; //밑이 비어있으면 crush flag 끔 
+
+	if (crush_on && check_crush(bx, by + 1, b_rotation) == false) { //밑이 비어있지않고 crush flag가 켜저있으면 
 		for (i = 0; i < MAIN_Y; i++) { //현재 조작중인 블럭을 굳힘 
 			for (j = 0; j < MAIN_X; j++) {
-				if (main_org[i][j] == ACTIVE_BLOCK) main_org[i][j] = INACTIVE_BLOCK;
+				if (main_org[i][j] == ACTIVE_BLOCK) 
+					main_org[i][j] = INACTIVE_BLOCK;
 			}
 		}
 		crush_on = 0; //flag를 끔 
-		check_line(); //라인체크를 함 
-		new_block_on = 1; //새로운 블럭생성 flag를 켬    
+		new_block_on = 1;
+		check_line(); //라인체크를 함 //새로운 블럭생성 flag를 켬    
 		return; //함수 종료 
 	}
-	if (check_crush(bx, by + 1, b_rotation) == true) move_block(DOWN); //밑이 비어있으면 밑으로 한칸 이동 
-	if (check_crush(bx, by + 1, b_rotation) == false) crush_on++; //밑으로 이동이 안되면  crush flag를 켬
+
+	if (check_crush(bx, by + 1, b_rotation) == true) 
+		move_block(DOWN); //밑이 비어있으면 밑으로 한칸 이동 
+
+	if (check_crush(bx, by + 1, b_rotation) == false) 
+		crush_on++; //밑으로 이동이 안되면  crush flag를 켬
 
 	return;
 }
@@ -479,13 +492,15 @@ void move_block(int dir) { //블록을 이동시킴
 }
 
 void check_line(void) {
-	int i, j, k, l;
-
-	int    block_amount; //한줄의 블록갯수를 저장하는 변수 
+	int i; 
+	int j;
+	int k;
+	int l;
+	int block_amount; //한줄의 블록갯수를 저장하는 변수 
 	int combo = 0; //콤보갯수 저장하는 변수 지정및 초기화 
 
 	for (i = MAIN_Y - 2; i > 3;) { //i=MAIN_Y-2 : 밑쪽벽의 윗칸부터,  i>3 : 천장(3)아래까지 검사 
-		block_amount = 0; //블록갯수 저장 변수 초기화 
+		block_amount = 0; //블록갯수 저장 변수 초기화
 		for (j = 1; j < MAIN_X - 1; j++) { //벽과 벽사이의 블록갯루를 셈 
 			if (main_org[i][j] > 0) block_amount++;
 		}
@@ -497,24 +512,30 @@ void check_line(void) {
 			}
 			for (k = i; k > 1; k--) { //윗줄을 한칸씩 모두 내림(윗줄이 천장이 아닌 경우에만) 
 				for (l = 1; l < MAIN_X - 1; l++) {
-					if (main_org[k - 1][l] != CEILLING) main_org[k][l] = main_org[k - 1][l];
-					if (main_org[k - 1][l] == CEILLING) main_org[k][l] = EMPTY;
+					if (main_org[k - 1][l] != CEILLING) 
+						main_org[k][l] = main_org[k - 1][l];
+					else 
+						main_org[k][l] = EMPTY;
 					//윗줄이 천장인 경우에는 천장을 한칸 내리면 안되니까 빈칸을 넣음 
 				}
 			}
 		}
 		else i--;
 	}
+
 	if (combo) { //줄 삭제가 있는 경우 점수와 레벨 목표를 새로 표시함  
 		if (combo > 1) { //2콤보이상인 경우 경우 보너스및 메세지를 게임판에 띄웠다가 지움 
-			gotoxy(MAIN_X_ADJ + (MAIN_X / 2) - 1, MAIN_Y_ADJ + by - 2); printf("%d COMBO!", combo);
+			gotoxy(MAIN_X_ADJ + (MAIN_X / 2) - 1, MAIN_Y_ADJ + by - 2); //게임화면 중앙 좌표로 이동
+			printf("%d COMBO!", combo);
 			Sleep(500);
-			score += (combo*level * 100);
+			score += (combo * level * 100);
 			reset_main_cpy(); //텍스트를 지우기 위해 main_cpy을 초기화.
 			//(main_cpy와 main_org가 전부 다르므로 다음번 draw()호출시 게임판 전체를 새로 그리게 됨) 
 		}
-		gotoxy(STATUS_X_ADJ, STATUS_Y_GOAL); printf(" GOAL  : %5d", (cnt <= 10) ? 10 - cnt : 0);
-		gotoxy(STATUS_X_ADJ, STATUS_Y_SCORE); printf("        %6d", score);
+		gotoxy(STATUS_X_ADJ, STATUS_Y_GOAL); 
+			printf("GOAL : %5d", (cnt <= 10) ? 10 - cnt : 0);
+		gotoxy(STATUS_X_ADJ, STATUS_Y_SCORE); 
+			printf("        %6d", score);
 	}
 
 	return;
